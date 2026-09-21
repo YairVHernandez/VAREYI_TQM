@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Feliz Día de las Flores Amarillas 🌻</title>
+<style>
+  :root{
+    --gold:#ffb830;
+    --gold-light:#ffd873;
+    --petal:#ff9d1f;
+    --petal-dark:#e8720a;
+    --center:#4a2a10;
+    --stem:#2fae4a;
+    --stem-dark:#1c7a30;
+    --card-bg: rgba(20,14,6,.82);
+    --card-border: #caa24a;
+  }
+  html,body{
+    height:100%;
+    margin:0;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+    scroll-behavior:smooth;
+  }
+  *{box-sizing:inherit;}
+  body{
+    min-height:100%;
+    overflow-x:hidden;
+    font-family:'Segoe UI', Verdana, sans-serif;
+    background:#0a0602;
+    position:relative;
+  }
+
+  /* ---------- Bokeh background ---------- */
+  .bokeh-wrap{ position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; }
+  .bokeh{
+    position:absolute;
+    border-radius:50%;
+    background: radial-gradient(circle, rgba(255,170,40,.35) 0%, rgba(255,170,40,0) 70%);
+    filter: blur(1px);
+    animation: bokeh-pulse var(--dur,6s) ease-in-out infinite;
+  }
+  @keyframes bokeh-pulse{
+    0%,100%{ opacity:.25; transform:scale(1); }
+    50%{ opacity:.6; transform:scale(1.15); }
+  }
+  .spark{
+    position:absolute;
+    width:3px;height:3px;
+    background:#ffe9b0;
+    border-radius:50%;
+    box-shadow:0 0 6px 2px rgba(255,220,140,.7);
+    animation: twinkle var(--dur2,3s) ease-in-out infinite;
+  }
+  @keyframes twinkle{
+    0%,100%{ opacity:.15; }
+    50%{ opacity:1; }
+  }
+
+  /* ---------- Intro overlay ---------- */
+  .intro-overlay{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    background: rgba(4,2,0,.55);
+    transition: opacity .6s ease, visibility .6s ease;
+  }
+  .intro-overlay.hidden{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+  }
+  .intro-text{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size: clamp(26px, 8vw, 40px);
+    color: var(--gold);
+    text-shadow: 0 0 10px rgba(255,190,60,.9), 0 0 26px rgba(255,150,20,.6);
+    margin-bottom: 34px;
+    text-align:center;
+  }
+  .open-btn{
+    font-family:'Segoe UI', sans-serif;
+    font-size: 16px;
+    letter-spacing:2px;
+    color:#3a2400;
+    background: linear-gradient(135deg, var(--gold-light), var(--petal-dark));
+    border:none;
+    padding: 14px 46px;
+    border-radius: 30px;
+    cursor:pointer;
+    box-shadow: 0 0 18px rgba(255,170,40,.7), 0 4px 14px rgba(0,0,0,.4);
+    animation: btn-pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes btn-pulse{
+    0%,100%{ transform:scale(1); box-shadow:0 0 18px rgba(255,170,40,.7), 0 4px 14px rgba(0,0,0,.4); }
+    50%{ transform:scale(1.06); box-shadow:0 0 30px rgba(255,170,40,.95), 0 4px 14px rgba(0,0,0,.4); }
+  }
+
+  /* ---------- Flower scene ---------- */
+  .scene{
+    position:relative;
+    width:100%;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    z-index:2;
+    padding-bottom: 4vh;
+  }
+
+  .title{
+    text-align:center;
+    padding: 0 6vw;
+    margin-bottom: 6vh;
+    opacity:0;
+  }
+  .title.show{
+    animation: title-in 1s ease-out forwards;
+  }
+  .title h1{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size: clamp(28px, 8vw, 48px);
+    margin:0;
+    font-weight:400;
+    color: var(--gold);
+    text-shadow:
+      0 0 10px rgba(255,255,255,.5),
+      0 0 22px rgba(255,180,50,.85),
+      0 0 44px rgba(255,150,20,.5);
+    line-height:1.25;
+  }
+  @keyframes title-in{
+    from{ opacity:0; transform:translateY(-16px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .field{
+    position:relative;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    gap: 1vw;
+    z-index:3;
+  }
+
+  .flower{
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    transform-origin:bottom center;
+  }
+
+  .stem-wrap{
+    opacity:0;
+    transform: scaleY(0.1);
+    transform-origin:bottom center;
+  }
+  .started .stem-wrap{
+    animation: stem-grow 1s cubic-bezier(.34,1.2,.4,1) forwards;
+    animation-delay: var(--stem-delay,0s);
+  }
+  @keyframes stem-grow{
+    0%{ opacity:0; transform: scaleY(0.1); }
+    40%{ opacity:1; }
+    100%{ opacity:1; transform: scaleY(1); }
+  }
+
+  .head{ position:relative; }
+  .bud{
+    opacity:0;
+    transform: scale(.3);
+    transform-origin:center;
+  }
+  .started .bud{
+    animation: bud-pop .5s ease-out forwards;
+    animation-delay: var(--bud-delay,0s);
+  }
+  @keyframes bud-pop{
+    0%{ opacity:0; transform:scale(.3); }
+    100%{ opacity:1; transform:scale(1); }
+  }
+
+  .petals{
+    opacity:0;
+    transform: scale(.2) rotate(-25deg);
+    transform-origin:center;
+    filter: drop-shadow(0 0 10px rgba(255,170,40,.7));
+  }
+  .started .petals{
+    animation: bloom .7s cubic-bezier(.34,1.56,.64,1) forwards;
+    animation-delay: var(--bloom-delay,0s);
+  }
+  @keyframes bloom{
+    0%{ opacity:0; transform: scale(.2) rotate(-25deg); }
+    70%{ opacity:1; }
+    100%{ opacity:1; transform: scale(1) rotate(0deg); }
+  }
+
+  .leaves{
+    opacity:0;
+    transform: translateY(10px);
+  }
+  .started .leaves{
+    animation: leaf-in .6s ease-out forwards;
+    animation-delay: var(--leaf-delay,0s);
+  }
+  @keyframes leaf-in{
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .glow-pulse{
+    animation: glow-breathe 3s ease-in-out infinite;
+  }
+  @keyframes glow-breathe{
+    0%,100%{ filter: drop-shadow(0 0 8px rgba(255,170,40,.55)); }
+    50%{ filter: drop-shadow(0 0 18px rgba(255,170,40,.9)); }
+  }
+
+  .scroll-hint{
+    margin-top: 5vh;
+    text-align:center;
+    color: var(--gold-light);
+    font-size: 13px;
+    letter-spacing:1px;
+    opacity:0;
+    cursor:pointer;
+  }
+  .scroll-hint.show{
+    animation: hint-in 1s ease forwards, bounce 1.6s ease-in-out infinite 1s;
+  }
+  @keyframes hint-in{ to{ opacity:.9; } }
+  @keyframes bounce{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(8px); }
+  }
+  .scroll-hint .arrow{ font-size:20px; display:block; margin-top:2px; }
+
+  /* ---------- Message section ---------- */
+  .message-section{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding: 8vh 6vw;
+    z-index:2;
+  }
+  .card{
+    max-width: 420px;
+    width:100%;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: 18px;
+    padding: 34px 26px;
+    box-shadow: 0 0 40px rgba(255,170,40,.15), 0 20px 50px rgba(0,0,0,.5);
+    opacity:0;
+    transform: translateY(30px);
+  }
+  .card.reveal{
+    animation: card-in .9s ease-out forwards;
+  }
+  @keyframes card-in{
+    to{ opacity:1; transform:translateY(0); }
+  }
+  .card h2{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size: clamp(26px, 6vw, 34px);
+    color: var(--gold);
+    text-align:center;
+    margin: 0 0 22px;
+    text-shadow: 0 0 12px rgba(255,180,60,.7);
+  }
+  .card p{
+    color:#f2e9d8;
+    font-size: 15px;
+    line-height:1.85;
+    text-align:justify;
+    margin: 0 0 18px;
+  }
+  .card p:last-child{ margin-bottom:0; }
+
+  /* ---------- Popup al tocar una flor ---------- */
+  .flower{ cursor:pointer; }
+  .flower:active .head{ transform: scale(0.93); }
+  .head{ transition: transform .15s ease; }
+
+  .overlay{
+    position:fixed;
+    inset:0;
+    background: rgba(4,2,0,.75);
+    backdrop-filter: blur(3px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:200;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity .3s ease;
+    padding: 20px;
+  }
+  .overlay.open{
+    opacity:1;
+    pointer-events:auto;
+  }
+
+  .popup-card{
+    position:relative;
+    width:min(360px, 92vw);
+    max-height:88vh;
+    overflow-y:auto;
+    background: var(--card-bg);
+    border: 1.5px solid var(--card-border);
+    border-radius: 18px;
+    padding: 30px 22px 24px;
+    box-shadow: 0 0 40px rgba(255,170,40,.2), 0 20px 60px rgba(0,0,0,.55);
+    transform: translateY(40px) scale(.92);
+    opacity:0;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+    text-align:center;
+  }
+  .overlay.open .popup-card{
+    transform: translateY(0) scale(1);
+    opacity:1;
+  }
+
+  .popup-card .close{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:30px;
+    height:30px;
+    border-radius:50%;
+    background: var(--petal);
+    color:#3a2400;
+    border:none;
+    font-size:16px;
+    line-height:30px;
+    cursor:pointer;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+  }
+
+  .popup-card h2{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size: clamp(24px, 6vw, 30px);
+    color: var(--gold);
+    margin: 4px 0 16px;
+    text-shadow: 0 0 12px rgba(255,180,60,.7);
+  }
+
+  .popup-photo{
+    width: 78%;
+    max-width:220px;
+    margin: 0 auto 16px;
+    border-radius:12px;
+    overflow:hidden;
+    border: 4px solid rgba(255,220,150,.85);
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+    background: linear-gradient(135deg,#3a2a10,#1c1206);
+  }
+  .popup-photo img{
+    display:block;
+    width:100%;
+    height:auto;
+  }
+  .photo-placeholder{
+    width:100%;
+    aspect-ratio: 4/5;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    color:#e8c97a;
+    font-size:12px;
+    gap:8px;
+  }
+  .photo-placeholder svg{ width:36px; height:36px; opacity:.7; }
+
+  .popup-card p{
+    color:#f2e9d8;
+    font-size: 14.5px;
+    line-height:1.7;
+    text-align:center;
+    margin: 0 0 14px;
+  }
+  .popup-signature{
+    font-family:'Brush Script MT','Segoe Script', cursive;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin-top: 4px;
+  }
+
+  .upload-btn{
+    display:inline-block;
+    margin: 0 0 16px;
+    padding: 8px 18px;
+    background: rgba(255,184,48,.15);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    color: var(--gold-light);
+    font-size: 12.5px;
+    cursor:pointer;
+    letter-spacing:.5px;
+  }
+  .upload-btn:hover{ background: rgba(255,184,48,.28); }
+  .upload-btn input{ display:none; }
+
+  [contenteditable="true"]{
+    outline: none;
+    border-bottom: 1px dashed transparent;
+    border-radius: 4px;
+    transition: background .2s ease;
+  }
+  [contenteditable="true"]:hover, [contenteditable="true"]:focus{
+    background: rgba(255,255,255,.06);
+    border-bottom-color: rgba(255,200,90,.5);
+  }
+  .edit-hint{
+    font-size:11px;
+    color:#c9a862;
+    opacity:.75;
+    margin: -8px 0 14px;
+  }
+</style>
+</head>
+<body>
+  <div class="bokeh-wrap" id="bokehWrap"></div>
+
+  <!-- Intro -->
+  <div class="intro-overlay" id="introOverlay">
+    <div class="intro-text">Toca para abrir 💐</div>
+    <button class="open-btn" id="openBtn">ABRIR</button>
+  </div>
+
+  <!-- Flower scene -->
+  <div class="scene">
+    <div class="title" id="title">
+      <h1>Feliz día de las<br>Flores Amarillas 🌻</h1>
+    </div>
+
+    <div class="field" id="field"></div>
+
+    <div class="scroll-hint" id="scrollHint">
+      Leeme
+      <span class="arrow">🌼</span>
+    </div>
+  </div>
+
+  <!-- Message -->
+  <div class="message-section">
+    <div class="card" id="card">
+      <h2>Para ti 🌻</h2>
+      <p>Mi niña, hay tantas por cosas bonita qué quiero decirte que sin dudas tu te mereces todo lo bonito del mundo Estuve pensando ...¿ Qué hice para tener a una persona tan linda como tú?🤍</p>
+      <p>Cada ves que me llega un mensaje tuyo me pongo muy feliz, aunque hablemos poco en todo el día... tus mensajes me hacen tan feliz que por poco lloro de alegría…✨</p>
+      <p>Tú eres lo más preciado que Dios me mandó y le agradezco por haberte puesto en mi vida sabes que me encantaría poder estar contigo, dandote muchos abrazos y cariño, pero lastimosamente estamos lejos…👉🏼👈🏼</p>
+      <p>Quiero que sepas que, a pesar de la diferencia estaré para ti por que eres y serás mi princesita favorita. Me gusta todo de ti, eres una persona marillosa. No dejes que nadie te diga lo contrario…🫂</p>
+      <p>Gracias por hacerme feliz cada día, en este tiempo que llevo hablando contigo me has hecho sentir una persona más feliz, Del mundo… Te agradezco que siempre que me saques una sonrisa con tus mensajitos lindos, aunque no tengo tantos temas de conversación. Siempre amare hablar contigo…😘</p>
+      <h2>Te Quiero Mucho ❤️</h2>
+    </div>
+  </div>
+
+  <!-- Popup al tocar una flor -->
+  <div class="overlay" id="overlay">
+    <div class="popup-card" id="popupCard">
+      <button class="close" id="closeBtn">✕</button>
+      <h2 id="popupGreet" contenteditable="true">Mi amor:</h2>
+      <div class="popup-photo" id="popupPhotoWrap">
+        <div class="photo-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M21 15l-5-5-4 4-3-3-6 6"/></svg>
+          <span>Tu foto aquí</span>
+        </div>
+      </div>
+      <div class="edit-hint">toca el saludo o el texto para editarlos</div>
+      <p id="popupText" contenteditable="true">Este girasol es un pequeño recordatorio de lo especial que eres para mí.</p>
+      <div class="popup-signature">Te Amo Mucho 🌻</div>
+    </div>
+  </div>
+
+<script>
+  /* =========================================================
+     ⭐ FOTOS PREDETERMINADAS ⭐
+     Coloca las fotos dentro de una carpeta llamada "fotos",
+     junto a este archivo HTML.
+
+     Foto 1 -> fotos/foto1.jpg
+     Foto 2 -> fotos/foto2.jpg
+     Foto 3 -> fotos/foto3.jpg
+     Foto 4 -> fotos/foto4.jpg
+     Foto 5 -> fotos/foto5.jpg
+
+     Al tocar una flor, su foto aparecerá automáticamente.
+     Ya NO es necesario subir fotos desde la página.
+     ========================================================= */
+  const photos = [
+    "fotos/img_01.jpeg",
+    "fotos/img_02.jpeg",
+    "fotos/img_03.jpeg",
+    "fotos/img_04.jpeg",
+    "fotos/img_05.jpeg"
+  ];
+
+  const defaultMessages = [
+    { greet:"Dicen:", text:"Que las flores florecen con el Sol, pero desde que llegaste a mi vida entendi que mi corazón florecen Contigo." },
+    { greet:"Hola preciosa:", text:"Gracias por iluminar cada uno de mis días. Eres simplemente hermosa." },
+    { greet:"Sabías que...", text:"Cada vez que te miro, siento que el sol brilla un poco más fuerte." },
+    { greet:"Recuerda:", text:"Eres la persona más especial que la vida me pudo regalar." },
+    { greet:"Para ti:", text:"Como estas flores amarillas, tú también alegras todo a tu alrededor." },
+  ];
+
+  function safeGet(key){
+    try{ return localStorage.getItem(key); }catch(e){ return null; }
+  }
+  function safeSet(key, value){
+    try{ localStorage.setItem(key, value); }catch(e){ /* almacenamiento no disponible */ }
+  }
+  // ---- Fondo bokeh ----
+  const bokehWrap = document.getElementById('bokehWrap');
+  for(let i=0;i<14;i++){
+    const b = document.createElement('div');
+    b.className='bokeh';
+    const size = 60 + Math.random()*120;
+    b.style.width = size+'px';
+    b.style.height = size+'px';
+    b.style.left = (Math.random()*100)+'%';
+    b.style.top = (Math.random()*100)+'%';
+    b.style.setProperty('--dur', (4+Math.random()*5)+'s');
+    b.style.animationDelay = (Math.random()*5)+'s';
+    bokehWrap.appendChild(b);
+  }
+  for(let i=0;i<30;i++){
+    const s = document.createElement('div');
+    s.className='spark';
+    s.style.left = (Math.random()*100)+'%';
+    s.style.top = (Math.random()*100)+'%';
+    s.style.setProperty('--dur2', (2+Math.random()*3)+'s');
+    s.style.animationDelay = (Math.random()*4)+'s';
+    bokehWrap.appendChild(s);
+  }
+
+  // ---- Girasol SVG ----
+  function sunflowerSVG(size, petalCount){
+    let petals = "";
+    for(let i=0;i<petalCount;i++){
+      const angle = (360/petalCount)*i;
+      petals += `<ellipse cx="60" cy="22" rx="11" ry="24"
+        fill="var(--petal)" stroke="var(--petal-dark)" stroke-width="1"
+        transform="rotate(${angle} 60 60)" />`;
+    }
+    return `
+    <svg width="${size}" height="${size}" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <g class="petals glow-pulse">${petals}</g>
+      <g class="bud">
+        <circle cx="60" cy="60" r="22" fill="var(--center)" stroke="#2c1a0a" stroke-width="2"/>
+        <circle cx="60" cy="60" r="22" fill="url(#seedGrad)" opacity="0.6"/>
+      </g>
+      <defs>
+        <radialGradient id="seedGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#1c0f04"/>
+          <stop offset="100%" stop-color="var(--center)" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+    </svg>`;
+  }
+
+  function stemLeafSVG(height, leafSide){
+    return `
+    <svg width="26" height="${height}" viewBox="0 0 26 ${height}" xmlns="http://www.w3.org/2000/svg" overflow="visible">
+      <path d="M13 0 C 9 ${height*0.35}, 17 ${height*0.6}, 13 ${height}"
+        stroke="var(--stem)" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <g class="leaves">
+        <ellipse cx="${leafSide==='left' ? 2 : 24}" cy="${height*0.5}" rx="16" ry="8"
+          fill="var(--stem)" transform="rotate(${leafSide==='left' ? -22 : 22} ${leafSide==='left'?2:24} ${height*0.5})"/>
+        <ellipse cx="${leafSide==='left' ? 24 : 2}" cy="${height*0.75}" rx="13" ry="7"
+          fill="var(--stem-dark)" transform="rotate(${leafSide==='left' ? 22 : -22} ${leafSide==='left'?24:2} ${height*0.75})"/>
+      </g>
+    </svg>`;
+  }
+
+  const flowersConfig = [
+    { headSize:70,  petals:12, stemH:130, side:'left'  },
+    { headSize:92,  petals:13, stemH:185, side:'right' },
+    { headSize:100, petals:14, stemH:215, side:'left'  },
+    { headSize:92,  petals:13, stemH:185, side:'right' },
+    { headSize:70,  petals:12, stemH:130, side:'left'  },
+  ];
+
+  const field = document.getElementById('field');
+  flowersConfig.forEach((cfg,i)=>{
+    const wrap = document.createElement('div');
+    wrap.className = 'flower';
+    wrap.style.setProperty('--stem-delay', (i*0.12)+'s');
+    wrap.style.setProperty('--bud-delay', (0.5 + i*0.12)+'s');
+    wrap.style.setProperty('--bloom-delay', (1.0 + i*0.15)+'s');
+    wrap.style.setProperty('--leaf-delay', (2.0 + i*0.12)+'s');
+
+    const head = document.createElement('div');
+    head.className='head';
+    head.innerHTML = sunflowerSVG(cfg.headSize, cfg.petals);
+
+    const stemWrap = document.createElement('div');
+    stemWrap.className='stem-wrap';
+    stemWrap.innerHTML = stemLeafSVG(cfg.stemH, cfg.side);
+
+    wrap.appendChild(head);
+    wrap.appendChild(stemWrap);
+    field.appendChild(wrap);
+
+    // Al tocar la flor, abrir el popup con su mensaje y foto
+    wrap.addEventListener('click', ()=> openPopup(i));
+  });
+
+  // ---- Popup ----
+  const overlay = document.getElementById('overlay');
+  const popupGreet = document.getElementById('popupGreet');
+  const popupText = document.getElementById('popupText');
+  const popupPhotoWrap = document.getElementById('popupPhotoWrap');
+  const closeBtn = document.getElementById('closeBtn');
+
+  let currentIndex = 0;
+
+  function placeholderHTML(){
+    return `
+      <div class="photo-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10.5" r="1.5"/><path d="M21 15l-5-5-4 4-3-3-6 6"/></svg>
+        <span>Tu foto aquí</span>
+      </div>`;
+  }
+
+  function openPopup(index){
+    currentIndex = index;
+    const d = defaultMessages[index % defaultMessages.length];
+
+    popupGreet.textContent = safeGet('flor_greet_'+index) || d.greet;
+    popupText.textContent = safeGet('flor_text_'+index) || d.text;
+
+    // La foto está predeterminada y se carga automáticamente.
+    const folderPhoto = photos[index] || "";
+    popupPhotoWrap.innerHTML = folderPhoto
+      ? `<img src="${folderPhoto}" alt="foto" onerror="this.parentElement.innerHTML = placeholderHTML();">`
+      : placeholderHTML();
+
+    overlay.classList.add('open');
+  }
+
+  closeBtn.addEventListener('click', ()=> overlay.classList.remove('open'));
+  overlay.addEventListener('click', (e)=>{
+    if(e.target === overlay) overlay.classList.remove('open');
+  });
+
+  // Guardar texto editado al salir del campo
+  popupGreet.addEventListener('blur', ()=>{
+    safeSet('flor_greet_'+currentIndex, popupGreet.textContent.trim());
+  });
+  popupText.addEventListener('blur', ()=>{
+    safeSet('flor_text_'+currentIndex, popupText.textContent.trim());
+  });
+
+  // ---- Secuencia de apertura ----
+  const introOverlay = document.getElementById('introOverlay');
+  const openBtn = document.getElementById('openBtn');
+  const title = document.getElementById('title');
+  const scene = document.querySelector('.scene');
+  const scrollHint = document.getElementById('scrollHint');
+  const card = document.getElementById('card');
+
+  function startExperience(){
+    introOverlay.classList.add('hidden');
+    title.classList.add('show');
+    scene.classList.add('started');
+
+    // Mostrar hint de scroll despues de que florezcan
+    setTimeout(()=>{
+      scrollHint.classList.add('show');
+    }, 3200);
+  }
+
+  openBtn.addEventListener('click', startExperience);
+
+  scrollHint.addEventListener('click', ()=>{
+    document.querySelector('.message-section').scrollIntoView({behavior:'smooth'});
+  });
+
+  // Revelar la tarjeta de mensaje cuando entra en vista
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        card.classList.add('reveal');
+      }
+    });
+  }, { threshold:0.3 });
+  observer.observe(card);
+</script>
+</body>
+</html>
